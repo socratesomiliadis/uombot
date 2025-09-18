@@ -1,5 +1,5 @@
 services:
-minio:
+  minio:
     image: minio/minio
     command: server /data --console-address ":9001"
     environment:
@@ -8,8 +8,8 @@ minio:
     volumes:
       - /srv/minio:/data
     ports:
-      - "9000:9000"   # S3 API
-      - "9001:9001"   # Console
+      - "9000:9000" # S3 API
+      - "9001:9001" # Console
   db:
     image: pgvector/pgvector:pg17
     container_name: uombot-db
