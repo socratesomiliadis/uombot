@@ -1,0 +1,27 @@
+services:
+minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - /srv/minio:/data
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Console
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: uombot-db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_uombot:/var/lib/postgresql/data
+      # - ./postgres/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+volumes:
+  pgdata_uombot:
