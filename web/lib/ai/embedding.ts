@@ -3,6 +3,7 @@ import { google } from "@ai-sdk/google";
 import { db } from "../db";
 import { cosineDistance, desc, gt, sql, eq } from "drizzle-orm";
 import { embeddings, chunks } from "../db/schema/embeddings";
+import { resources } from "../db/schema/resources";
 
 const embeddingModel = google.textEmbedding("gemini-embedding-001");
 
@@ -20,6 +21,12 @@ export const generateEmbeddings = async (
   const { embeddings } = await embedMany({
     model: embeddingModel,
     values: chunks,
+    providerOptions: {
+      google: {
+        outputDimensionality: 1536,
+        taskType: "RETRIEVAL_DOCUMENT",
+      },
+    },
   });
   return embeddings.map((e, i) => ({ content: chunks[i], embedding: e }));
 };
@@ -29,6 +36,12 @@ export const generateEmbedding = async (value: string): Promise<number[]> => {
   const { embedding } = await embed({
     model: embeddingModel,
     value: input,
+    providerOptions: {
+      google: {
+        outputDimensionality: 1536,
+        taskType: "RETRIEVAL_DOCUMENT",
+      },
+    },
   });
   return embedding;
 };
@@ -47,9 +60,13 @@ export const findRelevantContent = async (userQuery: string) => {
       resourceId: chunks.resourceId,
       chunkIdx: chunks.idx,
       version: chunks.version,
+      resourceTitle: resources.title,
+      resourceSource: resources.source,
+      resourceType: resources.type,
     })
     .from(embeddings)
     .innerJoin(chunks, eq(embeddings.chunkId, chunks.id))
+    .innerJoin(resources, eq(chunks.resourceId, resources.id))
     .where(gt(similarity, 0.5))
     .orderBy((t) => desc(t.similarity))
     .limit(4);

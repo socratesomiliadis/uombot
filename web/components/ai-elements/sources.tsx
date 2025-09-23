@@ -57,21 +57,39 @@ export const SourcesContent = ({
   />
 );
 
-export type SourceProps = ComponentProps<"a">;
+export type SourceProps = ComponentProps<"a"> & {
+  resourceId?: string;
+  sourceType?: string;
+};
 
-export const Source = ({ href, title, children, ...props }: SourceProps) => (
-  <a
-    className="flex items-center gap-2"
-    href={href}
-    rel="noreferrer"
-    target="_blank"
-    {...props}
-  >
-    {children ?? (
-      <>
-        <BookIcon className="h-4 w-4" />
-        <span className="block font-medium">{title}</span>
-      </>
-    )}
-  </a>
-);
+export const Source = ({
+  href,
+  title,
+  children,
+  resourceId,
+  sourceType,
+  ...props
+}: SourceProps) => {
+  const isPDF = sourceType === "pdf";
+  const sourceHref = isPDF && resourceId ? `/api/pdf/${resourceId}` : href;
+
+  return (
+    <a
+      className="flex items-center gap-2 hover:text-blue-600 transition-colors"
+      href={sourceHref}
+      rel="noreferrer"
+      target="_blank"
+      {...props}
+    >
+      {children ?? (
+        <>
+          <BookIcon className="h-4 w-4" />
+          <span className="block font-medium">{title}</span>
+          {isPDF && (
+            <span className="text-xs text-muted-foreground">(PDF)</span>
+          )}
+        </>
+      )}
+    </a>
+  );
+};

@@ -8,6 +8,8 @@ import { embedMany } from "ai";
 import { google } from "@ai-sdk/google";
 import { eq } from "drizzle-orm";
 import crypto from "crypto";
+import { nanoid } from "@/lib/utils";
+import { generateEmbedding } from "../ai/embedding";
 
 const embeddingModel = google.textEmbedding("gemini-embedding-001");
 
@@ -141,9 +143,22 @@ export class PDFPipeline {
 
       // Step 10: Generate embeddings
       console.log("Generating embeddings...");
+      // chunkRecords.forEach(async (chunkRecord) => {
+      //   const embedding = await generateEmbedding(chunkRecord.text);
+      //   await db.insert(embeddings).values({
+      //     chunkId: chunkRecord.id,
+      //     embedding,
+      //   });
+      // });
       const { embeddings: embeddingVectors } = await embedMany({
         model: embeddingModel,
         values: textChunks.map((chunk) => chunk.text),
+        providerOptions: {
+          google: {
+            outputDimensionality: 1536,
+            taskType: "RETRIEVAL_DOCUMENT",
+          },
+        },
       });
 
       // Step 11: Store embeddings
@@ -170,7 +185,7 @@ export class PDFPipeline {
         resourceId: resource.id,
         title: resource.title || fileName,
         chunksCreated: chunkRecords.length,
-        embeddingsCreated: embeddingVectors.length,
+        embeddingsCreated: chunkRecords.length,
       };
     } catch (error) {
       console.error("PDF pipeline error:", error);

@@ -1,228 +1,41 @@
-"use client";
-
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import Link from "next/link";
-import { authClient } from "@/lib/auth/client";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
-const signUpSchema = z
-  .object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    email: z.string().email("Please enter a valid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string().min(6, "Please confirm your password"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
-
-type SignUpForm = z.infer<typeof signUpSchema>;
+import SignUpForm from "@/components/forms/auth/sign-up";
 
 export default function SignUpPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-
-  const form = useForm<SignUpForm>({
-    resolver: zodResolver(signUpSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    },
-  });
-
-  const onSubmit = async (data: SignUpForm) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const result = await authClient.signUp.email({
-        name: data.name,
-        email: data.email,
-        password: data.password,
-      });
-
-      if (result.error) {
-        setError(result.error.message);
-      } else {
-        setSuccess(true);
-        // Optionally redirect to sign-in page or dashboard
-        setTimeout(() => {
-          window.location.href = "/sign-in";
-        }, 2000);
-      }
-    } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div className="bg-white py-8 px-6 shadow rounded-lg text-center">
-            <div className="mb-4">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
-                <svg
-                  className="h-6 w-6 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Account created successfully!
-            </h2>
-            <p className="text-gray-600 mb-4">
-              Please check your email to verify your account.
-            </p>
-            <p className="text-sm text-gray-500">
-              Redirecting to sign in page...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{" "}
-            <Link
-              href="/sign-in"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              sign in to your existing account
-            </Link>
-          </p>
-        </div>
-
-        <div className="bg-white py-8 px-6 shadow rounded-lg">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-                  {error}
-                </div>
-              )}
-
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full name</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="text"
-                        autoComplete="name"
-                        placeholder="Enter your full name"
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email address</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="email"
-                        autoComplete="email"
-                        placeholder="Enter your email"
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="password"
-                        autoComplete="new-password"
-                        placeholder="Create a password"
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm password</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="password"
-                        autoComplete="new-password"
-                        placeholder="Confirm your password"
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Create account"}
-              </Button>
-            </form>
-          </Form>
-        </div>
+    <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
+      <div className="flex w-full max-w-sm flex-col gap-6">
+        <Link href="/" className="self-center w-24">
+          <svg
+            width="100%"
+            viewBox="0 0 870 340"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M506.929 248.548H401.248V29.6834H505.053C544.761 29.6834 572.588 52.1952 572.588 85.025C572.588 110.038 554.454 129.423 527.565 135.989C557.893 140.679 577.278 161.315 577.278 189.142C577.278 224.161 548.513 248.548 506.929 248.548ZM438.455 63.1385V120.981H503.802C522.562 120.981 535.381 108.475 535.381 90.9656C535.381 74.707 523.5 63.1385 506.616 63.1385H438.455ZM438.455 153.498V214.781H508.805C527.565 214.781 539.133 201.336 539.133 183.827C539.133 166.005 525.376 153.498 505.365 153.498H438.455ZM669.133 253.238C615.355 253.238 584.088 215.406 584.088 164.129C584.088 110.038 620.67 77.8337 669.133 77.8337C722.599 77.8337 753.865 115.353 753.865 164.129C753.865 220.096 718.534 253.238 669.133 253.238ZM669.133 221.659C698.836 221.659 716.345 197.271 716.345 164.129C716.345 131.299 697.898 109.413 669.133 109.413C640.368 109.413 621.608 131.299 621.608 164.129C621.608 200.398 641.931 221.659 669.133 221.659ZM857.293 248.548H836.032C800.076 248.548 780.691 230.726 780.691 197.897V114.103H751.613V82.8363H780.691V26.2441H817.585V82.8363H860.42V114.103H817.585V195.395C817.585 209.465 824.776 217.282 838.534 217.282H857.293V248.548Z"
+              fill="currentColor"
+            />
+            <path
+              d="M196.016 183.203V110.698H235.437L245.158 165.48H245.319L255.04 110.698H294.462V183.203H270.24V127.508H270.025L259.391 182.935H231.087L220.453 127.508H220.238V183.203H196.016Z"
+              fill="#0066FF"
+            />
+            <path
+              d="M156.967 183.848C142.323 183.848 132.387 180.608 127.16 174.127C121.932 167.61 119.318 158.552 119.318 146.951C119.318 135.278 121.914 126.202 127.106 119.721C132.334 113.24 142.287 110 156.967 110C171.648 110 181.601 113.258 186.829 119.775C192.056 126.256 194.67 135.314 194.67 146.951C194.67 158.552 192.056 167.61 186.829 174.127C181.601 180.608 171.648 183.848 156.967 183.848ZM156.967 167.306C161.049 167.306 164.272 166.357 166.635 164.46C169.034 162.526 170.233 156.69 170.233 146.951C170.233 136.997 169.034 131.107 166.635 129.281C164.272 127.455 161.049 126.542 156.967 126.542C152.921 126.542 149.699 127.455 147.3 129.281C144.937 131.107 143.755 136.997 143.755 146.951C143.755 156.69 144.937 162.526 147.3 164.46C149.699 166.357 152.921 167.306 156.967 167.306Z"
+              fill="#0066FF"
+            />
+            <path
+              d="M81.3064 183.579C68.9536 183.579 59.8054 181.61 53.8618 177.671C47.9539 173.697 45 167.073 45 157.799V110.698H69.5444V155.275C69.5444 159.393 70.4216 162.382 72.1761 164.244C73.9305 166.106 76.974 167.037 81.3064 167.037C85.6388 167.037 88.6822 166.124 90.4367 164.298C92.1911 162.436 93.0683 159.428 93.0683 155.275V110.698H117.613V157.799C117.613 167.073 114.641 173.697 108.697 177.671C102.789 181.61 93.6591 183.579 81.3064 183.579Z"
+              fill="#0066FF"
+            />
+            <path
+              d="M169.759 -0.000488281C201.589 -0.000488281 233.419 0.848612 263.552 3.39502C302.597 5.94144 333.578 36.4984 336.974 75.5435C339.944 120.53 340.369 165.942 337.398 210.928C334.003 252.52 298.777 284.773 256.762 284.349H212.199L127.318 339.522V284.349L212.199 229.177H256.762C269.918 229.602 280.953 219.84 282.65 206.684C282.804 204.131 282.946 201.577 283.081 199.024H309V94.6157H282.875C282.564 89.5315 282.208 84.447 281.802 79.3628C280.953 67.4795 271.191 58.5671 259.732 57.7183C230.873 56.4451 200.316 55.1724 169.759 55.1724C139.202 55.1724 108.645 56.0211 79.7852 58.1431C67.902 58.992 58.5656 67.9044 57.7168 79.7876C57.3708 84.7303 57.0604 89.673 56.7842 94.6157H27.6348V157.668C27.6348 170.46 31.9272 182.961 43.5439 190.776L43.6367 190.837C47.4426 193.359 51.7129 195.207 56.2959 196.53C56.4667 200.056 56.6556 203.582 56.8672 207.108C58.1404 220.264 69.5995 229.601 82.7559 229.177H127.318V284.349H82.7559C40.7402 284.773 5.51452 252.944 2.11914 210.928C-0.851682 165.517 -0.426476 120.53 2.96875 75.1187C6.36407 36.0737 37.3456 5.51663 76.3906 2.97021C106.099 0.848225 137.929 -0.000486811 169.759 -0.000488281ZM293.048 183.072H283.799C284.694 158.903 284.712 134.735 283.697 110.567H293.048V183.072ZM56.0156 110.567C55.0897 133.482 54.9337 156.397 55.6191 179.312C54.4768 178.774 53.4194 178.184 52.4482 177.541C46.6327 173.628 43.6797 167.148 43.5889 158.101L43.5859 157.668V110.567H56.0156Z"
+              fill="#0066FF"
+            />
+          </svg>
+        </Link>
+        <SignUpForm />
       </div>
     </div>
   );
