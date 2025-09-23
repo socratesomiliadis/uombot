@@ -70,7 +70,7 @@ export async function GET(
     const pdfBuffer = await s3Service.getFile(key);
 
     // Return the PDF with appropriate headers
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(Buffer.from(pdfBuffer), {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `inline; filename="${

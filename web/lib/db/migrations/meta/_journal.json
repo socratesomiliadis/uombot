@@ -15,6 +15,20 @@
       "when": 1758203947638,
       "tag": "0001_green_reavers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1758640005712,
+      "tag": "0002_bitter_korvac",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1758640058455,
+      "tag": "0003_empty_invisible_woman",
+      "breakpoints": true
     }
   ]
 }
