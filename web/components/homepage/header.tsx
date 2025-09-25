@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function Header() {
   return (
@@ -34,6 +35,7 @@ export default function Header() {
         </svg>
       </div>
       <div className="flex items-center space-x-2 text-xl">
+        <ThemeToggle />
         <Button asChild size="lg">
           <Link href="/sign-in">Sign in</Link>
         </Button>

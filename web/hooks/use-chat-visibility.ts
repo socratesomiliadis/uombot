@@ -24,7 +24,11 @@ export function useChatVisibility({
   const historyData = queryClient.getQueryData(["history"]);
 
   const visibilityType = useMemo(() => {
-    if (!historyData || !("pages" in historyData) || !historyData.pages) {
+    if (
+      !historyData ||
+      !(typeof historyData === "object" && "pages" in historyData) ||
+      !historyData.pages
+    ) {
       return localVisibility;
     }
 

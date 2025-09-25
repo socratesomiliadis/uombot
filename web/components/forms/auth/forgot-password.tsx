@@ -83,10 +83,10 @@ export default function ForgotPasswordForm() {
             Check your email
           </h2>
           <p className="text-sm text-muted-foreground mb-2">
-            We've sent a password reset link to your email address.
+            We&apos;ve sent a password reset link to your email address.
           </p>
           <p className="text-xs text-muted-foreground mb-6">
-            Didn't receive the email? Check your spam folder or try again.
+            Didn&apos;t receive the email? Check your spam folder or try again.
           </p>
           <div className="space-y-3 w-full">
             <Button
@@ -115,7 +115,7 @@ export default function ForgotPasswordForm() {
           Forgot your password?
         </h2>
         <p className="text-sm text-muted-foreground mb-6 text-center">
-          Enter your email address and we'll send you a link to reset your
+          Enter your email address and we&apos;ll send you a link to reset your
           password.
         </p>
       </div>

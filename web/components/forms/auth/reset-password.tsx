@@ -83,7 +83,7 @@ export default function ResetPasswordForm() {
           window.location.href = "/sign-in";
         }, 3000);
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);

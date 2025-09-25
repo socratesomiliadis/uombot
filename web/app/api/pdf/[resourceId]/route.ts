@@ -8,7 +8,7 @@ import { s3Service } from "@/lib/storage/s3";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { resourceId: string } }
+  { params }: { params: Promise<{ resourceId: string }> }
 ) {
   try {
     // Get the session to check if user is authenticated
@@ -23,7 +23,7 @@ export async function GET(
       );
     }
 
-    const { resourceId } = params;
+    const { resourceId } = await params;
 
     // Get the resource from the database
     const resource = await db

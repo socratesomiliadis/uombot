@@ -55,7 +55,7 @@ export default function SignInPage() {
         // Redirect to dashboard or home page
         window.location.href = "/";
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
@@ -148,7 +148,7 @@ export default function SignInPage() {
         </form>
       </Form>
       <div className="text-center">
-        Don't have an account?{" "}
+        Don&apos;t have an account?{" "}
         <Button variant="link" size="sm" asChild className="p-0 m-0">
           <Link href="/sign-up">Sign up</Link>
         </Button>

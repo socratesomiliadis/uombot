@@ -12,8 +12,6 @@ import {
   lt,
   type SQL,
 } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
 import { Chat, chat, DBMessage, message } from "./schema/chat";
 import { db } from ".";
 

@@ -1,6 +1,17 @@
 import Header from "@/components/homepage/header";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (session) {
+    redirect("/chat");
+  }
+
   return (
     <main>
       <Header />
@@ -113,10 +124,10 @@ export default function Home() {
           </h3>
           <p className="text-gray-700 dark:text-gray-300 mb-4">
             The University of Macedonia is located in Thessaloniki, Greece, and
-            is one of the country's premier institutions of higher education.
-            Founded in 1957, it has established itself as a leading center for
-            economics, business administration, international and European
-            studies, and educational and social policy.
+            is one of the country&apos;s premier institutions of higher
+            education. Founded in 1957, it has established itself as a leading
+            center for economics, business administration, international and
+            European studies, and educational and social policy.
           </p>
           <p className="text-gray-700 dark:text-gray-300">
             UOMBot is here to help current students, prospective students,

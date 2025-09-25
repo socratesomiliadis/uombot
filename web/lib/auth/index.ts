@@ -3,6 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/lib/db"; // your drizzle instance
 import { nextCookies } from "better-auth/next-js";
 import { users, accounts, sessions, verifications } from "../db/schema/auth";
+import { env } from "@/lib/env";
 
 export const auth = betterAuth({
   user: {
@@ -58,5 +59,11 @@ export const auth = betterAuth({
     },
   },
   plugins: [nextCookies()],
-  trustedOrigins: ["http://localhost:3000"],
+  trustedOrigins: [
+    env.BETTER_AUTH_URL,
+    env.NEXT_PUBLIC_BETTER_AUTH_URL,
+    "http://localhost:3000",
+  ],
 });
+
+export type Session = typeof auth.$Infer.Session;

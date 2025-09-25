@@ -58,7 +58,7 @@ export default function SignUpForm() {
       });
 
       if (result.error) {
-        setError(result.error.message);
+        setError(result.error.message || "An unexpected error occurred");
       } else {
         setSuccess(true);
         // Optionally redirect to sign-in page or dashboard

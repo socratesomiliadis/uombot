@@ -19,7 +19,15 @@ export function Providers({
 }: React.ComponentProps<typeof NextThemesProvider>) {
   return (
     <QueryClientProvider client={queryClient}>
-      <NextThemesProvider {...props}>{children}</NextThemesProvider>
+      <NextThemesProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+        {...props}
+      >
+        {children}
+      </NextThemesProvider>
     </QueryClientProvider>
   );
 }
