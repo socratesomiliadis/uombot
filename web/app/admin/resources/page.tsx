@@ -1,8 +1,9 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { ResourcesManagement } from "./resources-management";
 
-export default async function AdminPage() {
+export default async function AdminResourcesPage() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -11,5 +12,5 @@ export default async function AdminPage() {
     redirect("/sign-in");
   }
 
-  return <div>Admin</div>;
+  return <ResourcesManagement />;
 }

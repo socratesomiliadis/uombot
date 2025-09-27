@@ -13,6 +13,8 @@ import {
   type SQL,
 } from "drizzle-orm";
 import { Chat, chat, DBMessage, message } from "./schema/chat";
+import { resources } from "./schema/resources";
+import { chunks } from "./schema/embeddings";
 import { db } from ".";
 
 export async function saveChat({
@@ -244,5 +246,144 @@ export async function getMessageCountByUserId({
     throw new Error("Failed to get message count by user id", {
       cause: _error,
     });
+  }
+}
+
+// Resource management queries
+export async function getAllResources({
+  limit = 50,
+  offset = 0,
+}: {
+  limit?: number;
+  offset?: number;
+} = {}) {
+  try {
+    const results = await db
+      .select({
+        id: resources.id,
+        type: resources.type,
+        title: resources.title,
+        source: resources.source,
+        lang: resources.lang,
+        contentHash: resources.contentHash,
+        createdBy: resources.createdBy,
+        status: resources.status,
+        createdAt: resources.createdAt,
+        updatedAt: resources.updatedAt,
+        chunkCount: count(chunks.id),
+      })
+      .from(resources)
+      .leftJoin(chunks, eq(resources.id, chunks.resourceId))
+      .groupBy(resources.id)
+      .orderBy(desc(resources.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    return results;
+  } catch (_error) {
+    throw new Error("Failed to get all resources", { cause: _error });
+  }
+}
+
+export async function getResourceById({ id }: { id: string }) {
+  try {
+    const [resource] = await db
+      .select()
+      .from(resources)
+      .where(eq(resources.id, id));
+
+    if (!resource) {
+      return null;
+    }
+
+    // Get chunk count for this resource
+    const [chunkStats] = await db
+      .select({ count: count(chunks.id) })
+      .from(chunks)
+      .where(eq(chunks.resourceId, id));
+
+    return {
+      ...resource,
+      chunkCount: chunkStats?.count ?? 0,
+    };
+  } catch (_error) {
+    throw new Error("Failed to get resource by id", { cause: _error });
+  }
+}
+
+export async function deleteResourceById({ id }: { id: string }) {
+  try {
+    // Delete chunks first (due to foreign key constraint)
+    await db.delete(chunks).where(eq(chunks.resourceId, id));
+
+    // Delete the resource
+    const [deletedResource] = await db
+      .delete(resources)
+      .where(eq(resources.id, id))
+      .returning();
+
+    return deletedResource;
+  } catch (_error) {
+    throw new Error("Failed to delete resource by id", { cause: _error });
+  }
+}
+
+export async function updateResourceStatus({
+  id,
+  status,
+}: {
+  id: string;
+  status: string;
+}) {
+  try {
+    const [updatedResource] = await db
+      .update(resources)
+      .set({
+        status,
+        updatedAt: new Date(),
+      })
+      .where(eq(resources.id, id))
+      .returning();
+
+    return updatedResource;
+  } catch (_error) {
+    throw new Error("Failed to update resource status", { cause: _error });
+  }
+}
+
+export async function getResourceStats() {
+  try {
+    const [totalResources] = await db
+      .select({ count: count(resources.id) })
+      .from(resources);
+
+    const [totalChunks] = await db
+      .select({ count: count(chunks.id) })
+      .from(chunks);
+
+    const statusStats = await db
+      .select({
+        status: resources.status,
+        count: count(resources.id),
+      })
+      .from(resources)
+      .groupBy(resources.status);
+
+    const typeStats = await db
+      .select({
+        type: resources.type,
+        count: count(resources.id),
+      })
+      .from(resources)
+      .groupBy(resources.type);
+
+    return {
+      totalResources: totalResources?.count ?? 0,
+      totalChunks: totalChunks?.count ?? 0,
+      statusStats,
+      typeStats,
+    };
+  } catch (_error) {
+    throw new Error("Failed to get resource stats", { cause: _error });
   }
 }
