@@ -17,7 +17,7 @@ export const env = createEnv({
     GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1),
     GROQ_API_KEY: z.string().min(1),
     // AI Configuration (with defaults)
-    SIMILARITY_THRESHOLD: z.coerce.number().min(0).max(1).default(0.68),
+    SIMILARITY_THRESHOLD: z.coerce.number().min(0).max(1).default(0.6),
     MAX_SOURCES: z.coerce.number().int().min(1).max(10).default(3),
   },
   client: {

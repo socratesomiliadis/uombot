@@ -233,12 +233,12 @@ export default function Chat({
             </PromptInputBody>
             <PromptInputFooter>
               <PromptInputTools>
-                <PromptInputActionMenu>
+                {/* <PromptInputActionMenu>
                   <PromptInputActionMenuTrigger />
                   <PromptInputActionMenuContent>
                     <PromptInputActionAddAttachments />
                   </PromptInputActionMenuContent>
-                </PromptInputActionMenu>
+                </PromptInputActionMenu> */}
               </PromptInputTools>
               <PromptInputSubmit disabled={!input && !status} status={status} />
             </PromptInputFooter>
