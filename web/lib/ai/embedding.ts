@@ -46,6 +46,11 @@ export const generateEmbedding = async (value: string): Promise<number[]> => {
   return embedding;
 };
 
+// Minimum similarity threshold for considering a result relevant
+const SIMILARITY_THRESHOLD = 0.68;
+// Maximum number of sources to return
+const MAX_SOURCES = 3;
+
 export const findRelevantContent = async (userQuery: string) => {
   const userQueryEmbedded = await generateEmbedding(userQuery);
   const similarity = sql<number>`1 - (${cosineDistance(
@@ -67,8 +72,8 @@ export const findRelevantContent = async (userQuery: string) => {
     .from(embeddings)
     .innerJoin(chunks, eq(embeddings.chunkId, chunks.id))
     .innerJoin(resources, eq(chunks.resourceId, resources.id))
-    .where(gt(similarity, 0.55))
+    .where(gt(similarity, SIMILARITY_THRESHOLD))
     .orderBy((t) => desc(t.similarity))
-    .limit(4);
+    .limit(MAX_SOURCES);
   return similarGuides;
 };

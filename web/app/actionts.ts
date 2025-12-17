@@ -2,7 +2,7 @@
 
 import { generateText, type UIMessage } from "ai";
 import { cookies } from "next/headers";
-import { google } from "@ai-sdk/google";
+import { groq } from "@ai-sdk/groq";
 import {
   deleteMessagesByChatIdAfterTimestamp,
   getMessageById,
@@ -20,7 +20,7 @@ export async function generateTitleFromUserMessage({
   message: UIMessage;
 }) {
   const { text: title } = await generateText({
-    model: google("gemini-2.5-flash"),
+    model: groq("moonshotai/kimi-k2-instruct-0905"),
     system: `\n
     - you will generate a short title based on the first message a user begins a conversation with
     - ensure it is not more than 80 characters long

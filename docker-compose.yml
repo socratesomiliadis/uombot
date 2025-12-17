@@ -13,6 +13,7 @@ services:
         - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
         - NEXT_PUBLIC_BETTER_AUTH_URL=${NEXT_PUBLIC_BETTER_AUTH_URL}
         - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY}
+        - GROQ_API_KEY=${GROQ_API_KEY}
     container_name: web
     ports:
       - "3000:3000"
@@ -26,6 +27,7 @@ services:
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - NEXT_PUBLIC_BETTER_AUTH_URL=${NEXT_PUBLIC_BETTER_AUTH_URL}
       - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
     depends_on:
       db:
         condition: service_healthy

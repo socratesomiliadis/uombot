@@ -48,6 +48,8 @@ export default function Chat({
   const router = useRouter();
   const pathname = usePathname();
   //   const [webSearch, setWebSearch] = useState(false);
+  const queryClient = useQueryClient();
+
   const { messages, sendMessage, status, regenerate } = useChat({
     id,
     messages: initialMessages,
@@ -58,6 +60,8 @@ export default function Chat({
       console.log("onFinish", { pathname, id, currentPath: pathname });
       // Only redirect if we're on the base /chat page, not if we're already on /chat/[id]
       if (pathname === "/chat") {
+        // Invalidate the history query so the sidebar updates with the new chat
+        queryClient.invalidateQueries({ queryKey: ["history"] });
         router.push(`/chat/${id}`);
       }
     },
@@ -105,6 +109,40 @@ export default function Chat({
                   chunkIdx: part.providerMetadata?.custom?.chunkIdx,
                   similarity: part.providerMetadata?.custom?.similarity,
                 }));
+
+                // Get the text content to check if AI indicated it doesn't know
+                const textPart = message.parts.find(
+                  (part) => part.type === "text"
+                ) as { type: "text"; text: string } | undefined;
+                const responseText = textPart?.text?.toLowerCase() || "";
+
+                // Patterns that indicate the AI couldn't find relevant information
+                const noAnswerPatterns = [
+                  "i don't know",
+                  "i do not know",
+                  "sorry, i don't",
+                  "sorry, i do not",
+                  "i couldn't find",
+                  "i could not find",
+                  "no relevant information",
+                  "no information found",
+                  "unable to find",
+                  "don't have information",
+                  "do not have information",
+                  "cannot answer",
+                  "can't answer",
+                ];
+
+                // Check if response indicates no useful answer was found
+                const hasNoAnswer = noAnswerPatterns.some((pattern) =>
+                  responseText.includes(pattern)
+                );
+
+                // Only show sources if the AI actually used them to provide an answer
+                const shouldShowSources =
+                  message.role === "assistant" &&
+                  sources.length > 0 &&
+                  !hasNoAnswer;
 
                 return (
                   <div key={message.id} className="space-y-3">
@@ -159,14 +197,21 @@ export default function Chat({
                       }
                     })}
 
-                    {/* Display sources after the message response */}
-                    {message.role === "assistant" && sources.length > 0 && (
+                    {/* Display sources only when AI provided a useful answer */}
+                    {shouldShowSources && (
                       <Sources sources={sources} className="mt-4" />
                     )}
                   </div>
                 );
               })}
-              {status === "submitted" && <Loader />}
+              {/* Show loader when submitted or when streaming but no text content yet */}
+              {(status === "submitted" ||
+                (status === "streaming" &&
+                  !messages
+                    .at(-1)
+                    ?.parts.some(
+                      (part) => part.type === "text" && part.text.length > 0
+                    ))) && <Loader />}
             </ConversationContent>
             <ConversationScrollButton />
           </Conversation>
