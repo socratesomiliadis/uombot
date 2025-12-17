@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# UOMBot Web Application
 
-## Getting Started
+The Next.js 16 web application powering UOMBot — the AI-powered university assistant.
 
-First, run the development server:
+## Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Install dependencies
+pnpm install
+
+# Start development server
 pnpm dev
-# or
-bun dev
+
+# Build for production
+pnpm build
+
+# Start production server
+pnpm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Database Commands
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Generate migration from schema changes
+pnpm db:generate
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Apply pending migrations
+pnpm db:migrate
 
-## Learn More
+# Push schema directly (dev only)
+pnpm db:push
 
-To learn more about Next.js, take a look at the following resources:
+# Open Drizzle Studio (database GUI)
+pnpm db:studio
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Key Directories
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Path                  | Description                               |
+| --------------------- | ----------------------------------------- |
+| `app/`                | Next.js App Router — pages and API routes |
+| `app/api/chat/`       | Streaming chat endpoint with RAG          |
+| `app/api/upload/pdf/` | PDF upload and processing                 |
+| `components/`         | React components                          |
+| `lib/ai/`             | Embedding generation and chunking         |
+| `lib/db/`             | Drizzle ORM schema and queries            |
+| `lib/pipeline/`       | PDF processing pipeline                   |
 
-## Deploy on Vercel
+## Environment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+See the root `README.md` for required environment variables. During development, create a `.env` file in the web directory.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Architecture Notes
+
+- **Streaming**: Uses Vercel AI SDK's `createUIMessageStream` for real-time responses
+- **Tools**: LLM uses `understandQuery` and `getInformation` tools for RAG
+- **Auth**: Better Auth with cookie-based sessions
+- **Styling**: Tailwind CSS 4 with CSS variables for theming

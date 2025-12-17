@@ -1,182 +1,155 @@
-# UOMBot - University of Macedonia AI Chatbot
+# UOMBot — AI-Powered University Assistant
 
-An intelligent conversational AI assistant specifically designed for the University of Macedonia in Thessaloniki, Greece. UOMBot provides instant, accurate answers to questions about academic life, courses, admissions, campus services, and university resources through an advanced RAG (Retrieval-Augmented Generation) system.
+> **Bachelor Thesis Project**  
+> Department of Applied Informatics, University of Macedonia, Thessaloniki, Greece
 
-## 🎯 Overview
+An intelligent conversational AI assistant that leverages Retrieval-Augmented Generation (RAG) to provide accurate, contextual answers about academic life, courses, admissions, and campus services at the University of Macedonia.
 
-UOMBot is a sophisticated AI-powered chatbot that combines the power of Google's Gemini AI with a comprehensive knowledge base of university information. The system processes PDF documents, creates embeddings for semantic search, and provides contextual responses with source citations.
+## Abstract
 
-**Key Capabilities:**
+This thesis explores the design and implementation of a domain-specific AI chatbot using modern RAG (Retrieval-Augmented Generation) techniques. UOMBot demonstrates how large language models can be augmented with institutional knowledge bases to provide accurate, source-attributed responses while mitigating hallucination—a critical challenge in deploying LLMs for factual question-answering tasks.
 
-- **Smart Document Processing**: Upload and process PDF documents with intelligent chunking and embedding generation
-- **Conversational AI**: Natural language interactions powered by Google Gemini 2.5 Flash
-- **Source Attribution**: Responses include citations and links to relevant source documents
-- **User Management**: Complete authentication system with role-based access control
-- **Admin Dashboard**: Administrative interface for managing resources and uploads
-- **Multi-language Support**: Configurable language support for international students
+## Features
 
-## ✨ Features
+### Core Capabilities
 
-### 🤖 AI-Powered Conversations
+- **RAG-Based Question Answering** — Semantic search through university documents combined with LLM reasoning for accurate, grounded responses
+- **Source Attribution** — Every response includes citations linking back to source documents
+- **Multi-Step Reasoning** — Query understanding tool generates alternative phrasings to improve retrieval coverage
+- **Bilingual Support** — Handles questions in both Greek and English
+- **Real-Time Streaming** — Responses stream token-by-token for responsive UX
 
-- Natural language processing with context awareness
-- Semantic search through university documents
-- Source attribution for all responses
-- Conversation history and management
-- Real-time streaming responses
+### Technical Features
 
-### 📄 Document Management
+- **PDF Processing Pipeline** — Upload, parse, chunk, and embed PDF documents automatically
+- **Vector Similarity Search** — HNSW-indexed embeddings for sub-millisecond retrieval
+- **User Authentication** — Secure sign-up/sign-in with role-based access control
+- **Admin Dashboard** — Resource management interface for uploading and monitoring documents
+- **Rate Limiting** — Protection against API abuse with configurable limits
+- **Dark/Light Themes** — Accessible UI with theme persistence
 
-- PDF upload and processing pipeline
-- Intelligent text extraction and chunking
-- Vector embeddings for semantic search
-- Deduplication and content hashing
-- Admin resource management interface
+## Architecture
 
-### 🔐 Authentication & Security
-
-- Secure user authentication with Better Auth
-- Role-based access control (User/Admin)
-- Session management with token validation
-- Protected API endpoints
-- Email verification system
-
-### 🎨 Modern UI/UX
-
-- Responsive design with Tailwind CSS
-- Dark/light theme support
-- Mobile-optimized interface
-- Real-time chat interface
-- Progress indicators and loading states
-
-### 🚀 High Performance
-
-- Server-side rendering with Next.js 15
-- Optimized database queries with Drizzle ORM
-- Efficient vector similarity search
-- File storage with MinIO/S3 compatibility
-- Docker containerization for easy deployment
-
-## 🏗️ Architecture
-
-```mermaid
-graph TB
-    A[User Interface] --> B[Next.js Frontend]
-    B --> C[API Routes]
-    C --> D[Authentication Layer]
-    D --> E[Chat Engine]
-    D --> F[Document Pipeline]
-
-    E --> G[Google Gemini AI]
-    E --> H[Vector Search]
-
-    F --> I[PDF Parser]
-    F --> J[Text Chunking]
-    F --> K[Embedding Generation]
-
-    H --> L[PostgreSQL + pgvector]
-    I --> M[MinIO Storage]
-    K --> L
-
-    subgraph "Data Layer"
-        L
-        M
-    end
-
-    subgraph "AI Services"
-        G
-        N[Google Embeddings API]
-    end
-
-    K --> N
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              Client                                      │
+│                         (Next.js Frontend)                               │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           API Layer                                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐                   │
+│  │   /api/chat  │  │ /api/upload  │  │  /api/admin  │                   │
+│  │              │  │     /pdf     │  │  /resources  │                   │
+│  └──────┬───────┘  └──────┬───────┘  └──────────────┘                   │
+└─────────┼─────────────────┼─────────────────────────────────────────────┘
+          │                 │
+          ▼                 ▼
+┌─────────────────┐  ┌─────────────────┐
+│   Chat Engine   │  │  PDF Pipeline   │
+│                 │  │                 │
+│  ┌───────────┐  │  │  ┌───────────┐  │
+│  │   Query   │  │  │  │   Parse   │  │
+│  │Understanding│ │  │  │   PDF    │  │
+│  └─────┬─────┘  │  │  └─────┬─────┘  │
+│        ▼        │  │        ▼        │
+│  ┌───────────┐  │  │  ┌───────────┐  │
+│  │  Vector   │  │  │  │  Chunk    │  │
+│  │  Search   │  │  │  │   Text   │  │
+│  └─────┬─────┘  │  │  └─────┬─────┘  │
+│        ▼        │  │        ▼        │
+│  ┌───────────┐  │  │  ┌───────────┐  │
+│  │   LLM     │  │  │  │  Generate │  │
+│  │ Response  │  │  │  │ Embeddings│  │
+│  └───────────┘  │  │  └───────────┘  │
+└─────────────────┘  └─────────────────┘
+          │                 │
+          ▼                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          Data Layer                                      │
+│  ┌────────────────────────────┐    ┌────────────────────────────┐       │
+│  │   PostgreSQL + pgvector    │    │    MinIO Object Storage    │       │
+│  │                            │    │                            │       │
+│  │  • users, sessions         │    │  • Original PDF files      │       │
+│  │  • chats, messages         │    │  • S3-compatible API       │       │
+│  │  • resources, chunks       │    │                            │       │
+│  │  • embeddings (1536-dim)   │    │                            │       │
+│  └────────────────────────────┘    └────────────────────────────┘       │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
-## 🛠️ Technology Stack
+## Technology Stack
 
-### Frontend & Backend
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| **Frontend** | Next.js 16, React 19, Tailwind CSS 4 | Server-rendered UI with streaming support |
+| **UI Components** | Radix UI, Lucide Icons, Motion | Accessible, animated component library |
+| **LLM (Chat)** | Groq API (Kimi K2 Instruct) | Fast inference for conversational responses |
+| **Embeddings** | Google AI (gemini-embedding-001) | 1536-dimensional text embeddings |
+| **Vector Search** | PostgreSQL + pgvector (HNSW) | Cosine similarity search with indexing |
+| **ORM** | Drizzle ORM | Type-safe database queries |
+| **Authentication** | Better Auth | Session-based auth with role support |
+| **Object Storage** | MinIO | S3-compatible PDF storage |
+| **Validation** | Zod, T3 Env | Runtime type checking and env validation |
+| **AI SDK** | Vercel AI SDK 5 | Unified interface for streaming & tools |
 
-- **Framework**: Next.js 15 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS 4
-- **UI Components**: Radix UI primitives
-- **State Management**: React Query (TanStack Query)
-- **Forms**: React Hook Form with Zod validation
+## RAG Implementation
 
-### AI & Machine Learning
+### Pipeline Overview
 
-- **LLM**: Google Gemini 2.5 Flash
-- **Embeddings**: Google Generative AI Embeddings
-- **Vector Database**: PostgreSQL with pgvector extension
-- **PDF Processing**: pdf-parse library
-- **Text Chunking**: Custom implementation with token counting
+1. **Query Understanding** — Generates 2 alternative phrasings of the user's question to improve retrieval coverage
+2. **Embedding Generation** — User query is embedded using Google's `gemini-embedding-001` model
+3. **Vector Search** — Cosine similarity search against chunked document embeddings
+4. **Context Assembly** — Top-K relevant chunks are retrieved (configurable threshold: 0.6)
+5. **Response Generation** — LLM synthesizes response using retrieved context as grounding
+6. **Source Attribution** — Chunks are linked back to their source documents for citation
 
-### Database & Storage
+### Chunking Strategy
 
-- **Database**: PostgreSQL 17 with pgvector
-- **ORM**: Drizzle ORM
-- **File Storage**: MinIO (S3-compatible)
-- **Migrations**: Drizzle Kit
+Documents are processed using a token-aware chunking algorithm:
+- **Target chunk size**: ~400 tokens
+- **Overlap**: 50 tokens between chunks
+- **Boundary detection**: Paragraph and sentence-aware splitting
+- **Deduplication**: SHA-256 content hashing prevents duplicate processing
 
-### Authentication & Security
+### Tool-Based Architecture
 
-- **Auth System**: Better Auth
-- **Session Management**: Token-based with database storage
-- **Environment**: T3 Env for type-safe environment variables
-- **Validation**: Zod schemas throughout
+The chat system uses Vercel AI SDK's tool calling feature:
 
-### Infrastructure
+```typescript
+tools: {
+  understandQuery: {
+    // Generates alternative question phrasings
+    // Improves retrieval recall
+  },
+  getInformation: {
+    // Performs vector similarity search
+    // Returns relevant document chunks with metadata
+  }
+}
+```
 
-- **Containerization**: Docker & Docker Compose
-- **Development**: Hot reload with Next.js
-- **Linting**: ESLint with Next.js config
-- **Package Manager**: pnpm
-
-## 🚀 Quick Start
+## Getting Started
 
 ### Prerequisites
 
-- **Node.js** 18+ and pnpm
-- **Docker** and Docker Compose
-- **Google AI API Key** (for Gemini and Embeddings)
+- Node.js 18+ and pnpm
+- Docker and Docker Compose
+- Google AI API Key
+- Groq API Key
 
-### 1. Clone the Repository
+### Quick Start (Docker)
 
 ```bash
-git clone https://github.com/your-org/uombot.git
+# Clone the repository
+git clone https://github.com/yourusername/uombot.git
 cd uombot
-```
 
-### 2. Environment Setup
+# Create environment file
+cp .env.example .env
+# Edit .env with your API keys
 
-Create a `.env` file in the project root:
-
-```env
-# Database Configuration
-DATABASE_URL=postgresql://postgres:password@localhost:5432/uombot
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=password
-POSTGRES_DB=uombot
-
-# MinIO/S3 Storage
-S3_ENDPOINT=http://localhost:9000
-S3_ACCESS_KEY=minioadmin
-S3_SECRET_KEY=minioadmin123
-S3_BUCKET=uombot-documents
-MINIO_ROOT_USER=minioadmin
-MINIO_ROOT_PASSWORD=minioadmin123
-
-# Authentication
-BETTER_AUTH_URL=http://localhost:3000
-BETTER_AUTH_SECRET=your-super-secret-auth-key-here
-NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:3000
-
-# Google AI Services
-GOOGLE_GENERATIVE_AI_API_KEY=your-google-ai-api-key-here
-```
-
-### 3. Start with Docker (Recommended)
-
-```bash
 # Start all services
 docker-compose up -d
 
@@ -184,255 +157,184 @@ docker-compose up -d
 docker-compose logs -f web
 ```
 
-This will start:
-
+Services will be available at:
 - **Web Application**: http://localhost:3000
-- **PostgreSQL Database**: localhost:5432
-- **MinIO Storage**: http://localhost:9000 (Console: http://localhost:9001)
+- **MinIO Console**: http://localhost:9001
+- **PostgreSQL**: localhost:5432
 
-### 4. Development Setup (Alternative)
-
-If you prefer running the web app locally:
+### Development Setup
 
 ```bash
-# Start only database and storage
+# Start database and storage only
 docker-compose up -d db minio
 
 # Install dependencies
 cd web
 pnpm install
 
-# Run database migrations
+# Run migrations
 pnpm db:migrate
 
 # Start development server
 pnpm dev
 ```
 
-### 5. Initial Setup
+### Environment Variables
 
-1. **Create MinIO Bucket**:
+```env
+# Database
+DATABASE_URL=postgresql://postgres:password@localhost:5432/uombot
 
-   - Access MinIO console at http://localhost:9001
-   - Login with `minioadmin` / `minioadmin123`
-   - Create bucket named `uombot-documents`
+# Object Storage (MinIO)
+S3_ENDPOINT=http://localhost:9000
+S3_ACCESS_KEY=minioadmin
+S3_SECRET_KEY=minioadmin123
+S3_BUCKET=uombot-documents
 
-2. **Create Admin Account**:
+# Authentication
+BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_SECRET=your-secret-key-here
+NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:3000
 
-   - Visit http://localhost:3000
-   - Sign up with your email
-   - Update user role to 'admin' in the database if needed
+# AI Services
+GOOGLE_GENERATIVE_AI_API_KEY=your-google-ai-key
+GROQ_API_KEY=your-groq-api-key
 
-3. **Upload Documents**:
-   - Access admin panel at http://localhost:3000/admin
-   - Upload PDF documents for the knowledge base
-
-## 📖 Usage Guide
-
-### For End Users
-
-1. **Sign Up/Sign In**: Create an account or sign in to access the chatbot
-2. **Start Chatting**: Ask questions about university services, courses, admissions, etc.
-3. **View Sources**: Click on source citations to see referenced documents
-4. **Chat History**: Access previous conversations through the sidebar
-
-### For Administrators
-
-1. **Access Admin Panel**: Navigate to `/admin` (requires admin role)
-2. **Upload Documents**:
-   - Go to `/admin/upload`
-   - Select PDF files related to university information
-   - Provide titles and language tags
-3. **Manage Resources**: View and manage uploaded documents at `/admin/resources`
-4. **Monitor Usage**: Check chat logs and user activity
-
-### PDF Document Processing
-
-When you upload a PDF:
-
-1. **File Validation**: System checks file type and size (max 10MB)
-2. **Text Extraction**: PDF content is parsed and cleaned
-3. **Intelligent Chunking**: Text is split into semantic chunks (~400 tokens)
-4. **Embedding Generation**: Google AI creates vector embeddings
-5. **Storage**: Chunks and embeddings are stored for semantic search
-6. **Deduplication**: Content hashing prevents duplicate processing
-
-## 🔌 API Reference
-
-### PDF Upload API
-
-```typescript
-POST /api/upload/pdf
-Authorization: Bearer <token>
-Content-Type: multipart/form-data
-
-// Form data:
-// file: PDF file (max 10MB)
-// title: Optional document title
-// lang: Language code (default: 'en')
+# Optional: Tuning Parameters
+SIMILARITY_THRESHOLD=0.6    # Minimum cosine similarity for retrieval
+MAX_SOURCES=3               # Maximum chunks to retrieve per query
 ```
 
-### Resource Management
+## Project Structure
 
-```typescript
-GET /api/admin/resources     // List all resources
-DELETE /api/upload/pdf?resourceId=<id>  // Delete resource
+```
+uombot/
+├── docker-compose.yml          # Container orchestration
+├── README.md                   # This file
+│
+└── web/                        # Next.js application
+    ├── app/                    # App Router pages and API routes
+    │   ├── (auth)/            # Authentication pages
+    │   ├── admin/             # Admin dashboard
+    │   ├── api/               # API endpoints
+    │   └── chat/              # Chat interface
+    │
+    ├── components/            # React components
+    │   ├── ai-elements/       # Chat UI components
+    │   ├── app-sidebar/       # Navigation sidebar
+    │   └── ui/                # Base UI components
+    │
+    ├── lib/                   # Core library code
+    │   ├── ai/                # Embedding & chunking logic
+    │   ├── auth/              # Better Auth configuration
+    │   ├── db/                # Drizzle schema & queries
+    │   ├── pdf/               # PDF parsing utilities
+    │   ├── pipeline/          # Document processing pipeline
+    │   └── storage/           # S3/MinIO client
+    │
+    └── hooks/                 # Custom React hooks
 ```
 
-## 🗃️ Database Schema
+## Database Schema
 
 ### Core Tables
 
-- **users**: User accounts with role-based access
-- **sessions**: Authentication sessions
-- **chats**: Conversation threads
-- **messages**: Individual chat messages
-- **resources**: Uploaded documents and metadata
-- **chunks**: Text segments from documents
-- **embeddings**: Vector representations for semantic search
+| Table | Description |
+|-------|-------------|
+| `users` | User accounts with roles (user/admin) |
+| `sessions` | Authentication sessions |
+| `chats` | Conversation threads |
+| `messages` | Chat messages with parts and attachments |
+| `resources` | Uploaded documents (PDFs) |
+| `chunks` | Text segments from documents |
+| `embeddings` | Vector representations (1536-dim) |
 
-### Vector Search
-
-The system uses PostgreSQL's pgvector extension for efficient similarity search:
+### Vector Search Query
 
 ```sql
--- Find similar content
-SELECT chunk_id, 1 - (embedding <=> query_embedding) as similarity
+SELECT 
+  chunk_id,
+  1 - (embedding <=> query_embedding) AS similarity
 FROM embeddings
+WHERE 1 - (embedding <=> query_embedding) > 0.6
 ORDER BY embedding <=> query_embedding
-LIMIT 10;
+LIMIT 3;
 ```
 
-## 🚦 Environment Configuration
+## API Reference
 
-### Required Environment Variables
+### Chat API
 
-| Variable                       | Description                  | Example                               |
-| ------------------------------ | ---------------------------- | ------------------------------------- |
-| `DATABASE_URL`                 | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
-| `S3_ENDPOINT`                  | MinIO/S3 endpoint URL        | `http://localhost:9000`               |
-| `S3_ACCESS_KEY`                | S3 access key                | `minioadmin`                          |
-| `S3_SECRET_KEY`                | S3 secret key                | `minioadmin123`                       |
-| `S3_BUCKET`                    | S3 bucket name               | `uombot-documents`                    |
-| `BETTER_AUTH_URL`              | Base URL for authentication  | `http://localhost:3000`               |
-| `BETTER_AUTH_SECRET`           | Secret for auth tokens       | `your-secret-key`                     |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | Google AI API key            | `AIza...`                             |
+```
+POST /api/chat
+Authorization: Cookie-based session
 
-### Optional Configuration
+Request:
+{
+  "id": "chat-id",
+  "messages": [{ "role": "user", "content": "..." }]
+}
 
-- `NODE_ENV`: Environment mode (development/production)
-- Custom chunking parameters in `lib/ai/chunking.ts`
-- File size limits in `app/api/upload/pdf/route.ts`
-
-## 🧪 Development
-
-### Database Operations
-
-```bash
-# Generate migrations
-pnpm db:generate
-
-# Apply migrations
-pnpm db:migrate
-
-# Open Drizzle Studio
-pnpm db:studio
-
-# Push schema changes
-pnpm db:push
+Response: Server-Sent Events stream
 ```
 
-### Code Quality
+### PDF Upload API
 
-```bash
-# Linting
-pnpm lint
+```
+POST /api/upload/pdf
+Authorization: Cookie-based session
+Content-Type: multipart/form-data
 
-# Type checking
-pnpm build
+Form Data:
+- file: PDF file (max 10MB)
+- title: Optional document title
+- lang: Language code (default: 'en')
 ```
 
-### Docker Development
+### Admin Resources API
 
-```bash
-# Rebuild specific service
-docker-compose build web
+```
+GET /api/admin/resources
+Authorization: Admin role required
 
-# View logs for specific service
-docker-compose logs -f web
-
-# Access container shell
-docker-compose exec web bash
+Response:
+{
+  "resources": [
+    { "id": "...", "title": "...", "status": "ready", ... }
+  ]
+}
 ```
 
-## 🐛 Troubleshooting
+## Rate Limits
 
-### Common Issues
+| Endpoint | Limit | Window |
+|----------|-------|--------|
+| Chat API | 30 requests | 1 minute |
+| Upload API | 10 uploads | 1 hour |
+| Admin API | 100 requests | 1 minute |
+| Auth API | 10 attempts | 15 minutes |
 
-#### 1. MinIO Connection Errors
+## Thesis Context
 
-- Verify MinIO is running: `docker-compose ps`
-- Check bucket exists and is accessible
-- Validate S3 credentials in environment
+This project was developed as part of a Bachelor's thesis investigating the application of RAG systems in educational contexts. Key research areas include:
 
-#### 2. Database Connection Issues
+1. **Hallucination Mitigation** — How retrieval-augmented approaches reduce factual errors compared to pure LLM responses
+2. **Domain Adaptation** — Techniques for grounding general-purpose LLMs with institution-specific knowledge
+3. **User Experience** — The impact of source attribution on user trust and response verification
+4. **Bilingual Retrieval** — Challenges and solutions for Greek-English cross-lingual information retrieval
 
-- Ensure PostgreSQL is running with pgvector extension
-- Verify DATABASE_URL format and credentials
-- Check if migrations have been applied
+## License
 
-#### 3. PDF Processing Failures
+This project was developed for academic purposes as part of a Bachelor's thesis at the University of Macedonia.
 
-- Confirm PDF is not password-protected or corrupted
-- Check file size is under 10MB limit
-- Verify Google AI API key is valid and has quota
+## Acknowledgments
 
-#### 4. Authentication Problems
+- **University of Macedonia** — Department of Applied Informatics
+- **Google AI** — Gemini API and embedding models
+- **Groq** — Fast LLM inference infrastructure
+- **Vercel** — AI SDK and Next.js framework
+- **Open Source Community** — For the incredible tools that made this possible
 
-- Verify BETTER_AUTH_SECRET is set and consistent
-- Check if user session has expired
-- Ensure BETTER_AUTH_URL matches your domain
+---
 
-### Debug Mode
-
-Enable detailed logging by setting:
-
-```env
-NODE_ENV=development
-```
-
-### Health Checks
-
-- **Application**: http://localhost:3000
-- **Database**: Check with `docker-compose logs db`
-- **MinIO**: http://localhost:9001 (admin console)
-- **API Status**: POST to `/api/chat` with valid auth
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
-
-### Development Guidelines
-
-- Follow TypeScript best practices
-- Add proper error handling and logging
-- Include tests for new features
-- Update documentation for API changes
-- Use conventional commit messages
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **University of Macedonia** for institutional support
-- **Google AI** for providing the Gemini API
-- **Vercel** for Next.js framework
-- **Open Source Community** for all the amazing libraries used
-
-**UOMBot** - Empowering students with AI-driven assistance for academic success at the University of Macedonia.
+**UOMBot** — Empowering students with AI-driven assistance for academic success.
