@@ -1,10 +1,24 @@
 /**
- * Simple token counting approximation
- * Uses character count / 4 as a rough estimate for tokens
- * This is sufficient for chunking purposes without external dependencies
+ * Improved token counting approximation
+ * Uses a more accurate heuristic based on word boundaries and punctuation
+ * Typical ratios: ~1.3 tokens per word for English, ~4 chars per token
+ *
+ * This is a fast approximation suitable for chunking purposes.
+ * For exact token counts, you would need model-specific tokenizers.
  */
 function countTokens(text: string): number {
-  return Math.ceil(text.length / 4);
+  if (!text) return 0;
+
+  // Count words (split by whitespace)
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const wordCount = words.length;
+
+  // Count punctuation and special characters (they often become separate tokens)
+  const punctuation = text.match(/[.,!?;:'"()\[\]{}]/g)?.length || 0;
+
+  // Estimate: ~1.3 tokens per word + punctuation tokens
+  // This is more accurate than simple char/4 for most text
+  return Math.ceil(wordCount * 1.3 + punctuation * 0.5);
 }
 
 export interface ChunkConfig {

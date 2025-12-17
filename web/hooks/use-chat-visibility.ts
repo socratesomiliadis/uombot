@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { updateChatVisibility } from "@/app/actionts";
+import { updateChatVisibility } from "@/app/actions";
 import type { ChatHistory } from "@/components/app-sidebar/sidebar-history";
 import type { VisibilityType } from "@/components/chat/visibility-selector";
 

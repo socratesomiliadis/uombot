@@ -29,6 +29,13 @@
       "when": 1758640058455,
       "tag": "0003_empty_invisible_woman",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1734451200000,
+      "tag": "0004_add_indexes",
+      "breakpoints": true
     }
   ]
 }

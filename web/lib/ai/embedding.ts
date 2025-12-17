@@ -4,6 +4,7 @@ import { db } from "../db";
 import { cosineDistance, desc, gt, sql, eq } from "drizzle-orm";
 import { embeddings, chunks } from "../db/schema/embeddings";
 import { resources } from "../db/schema/resources";
+import { env } from "../env";
 
 const embeddingModel = google.textEmbedding("gemini-embedding-001");
 
@@ -46,10 +47,9 @@ export const generateEmbedding = async (value: string): Promise<number[]> => {
   return embedding;
 };
 
-// Minimum similarity threshold for considering a result relevant
-const SIMILARITY_THRESHOLD = 0.68;
-// Maximum number of sources to return
-const MAX_SOURCES = 3;
+// Configuration from environment variables with defaults
+const SIMILARITY_THRESHOLD = env.SIMILARITY_THRESHOLD;
+const MAX_SOURCES = env.MAX_SOURCES;
 
 export const findRelevantContent = async (userQuery: string) => {
   const userQueryEmbedded = await generateEmbedding(userQuery);

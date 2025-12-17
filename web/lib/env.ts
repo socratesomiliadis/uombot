@@ -16,14 +16,15 @@ export const env = createEnv({
     BETTER_AUTH_SECRET: z.string().min(1),
     GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1),
     GROQ_API_KEY: z.string().min(1),
+    // AI Configuration (with defaults)
+    SIMILARITY_THRESHOLD: z.coerce.number().min(0).max(1).default(0.68),
+    MAX_SOURCES: z.coerce.number().int().min(1).max(10).default(3),
   },
   client: {
     NEXT_PUBLIC_BETTER_AUTH_URL: z.string().min(1),
-    // NEXT_PUBLIC_PUBLISHABLE_KEY: z.string().min(1),
   },
 
   experimental__runtimeEnv: {
     NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
-    // NEXT_PUBLIC_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_PUBLISHABLE_KEY,
   },
 });

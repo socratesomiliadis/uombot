@@ -22,7 +22,13 @@ import {
   saveChat,
   saveMessages,
 } from "@/lib/db/queries";
-import { generateTitleFromUserMessage } from "@/app/actionts";
+import { generateTitleFromUserMessage } from "@/app/actions";
+import {
+  checkRateLimit,
+  rateLimiters,
+  rateLimitedResponse,
+  createRateLimitHeaders,
+} from "@/lib/rate-limit";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -34,6 +40,15 @@ export async function POST(req: Request) {
 
   if (!session) {
     return new Response("Unauthorized", { status: 401 });
+  }
+
+  // Rate limiting
+  const rateLimitResult = checkRateLimit(
+    `chat:${session.user.id}`,
+    rateLimiters.chat
+  );
+  if (!rateLimitResult.success) {
+    return rateLimitedResponse(rateLimitResult.resetTime);
   }
 
   const { messages, id }: { messages: UIMessage[]; id: string } =

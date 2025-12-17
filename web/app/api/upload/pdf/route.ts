@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { pdfPipeline } from "@/lib/pipeline/pdf-pipeline";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import {
+  checkRateLimit,
+  rateLimiters,
+  rateLimitedResponse,
+} from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,6 +20,15 @@ export async function POST(request: NextRequest) {
         { error: "Authentication required" },
         { status: 401 }
       );
+    }
+
+    // Rate limiting for uploads
+    const rateLimitResult = checkRateLimit(
+      `upload:${session.user.id}`,
+      rateLimiters.upload
+    );
+    if (!rateLimitResult.success) {
+      return rateLimitedResponse(rateLimitResult.resetTime);
     }
 
     // Parse form data
