@@ -106,6 +106,15 @@ export async function POST(req: Request) {
                     sourceId: result.resourceId,
                     url: result.resourceSource || "",
                     title: result.resourceTitle || "",
+                    // Include additional metadata for rich source display
+                    providerMetadata: {
+                      custom: {
+                        resourceType: result.resourceType || "pdf",
+                        content: result.content?.slice(0, 300) || "",
+                        chunkIdx: result.chunkIdx,
+                        similarity: result.similarity,
+                      },
+                    },
                   });
                 }
               });

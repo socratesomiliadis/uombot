@@ -18,7 +18,7 @@ import {
   type PromptInputMessage,
   PromptInputSubmit,
   PromptInputTextarea,
-  PromptInputToolbar,
+  PromptInputFooter,
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
 import { Actions, Action } from "@/components/ai-elements/actions";
@@ -26,12 +26,7 @@ import { Fragment, useState } from "react";
 import { useChat, UIMessage } from "@ai-sdk/react";
 import { Response } from "@/components/ai-elements/response";
 import { CopyIcon, RefreshCcwIcon } from "lucide-react";
-import {
-  Source,
-  Sources,
-  SourcesContent,
-  SourcesTrigger,
-} from "@/components/ai-elements/sources";
+import { Sources, type SourceData } from "@/components/ai-elements/sources";
 import {
   Reasoning,
   ReasoningContent,
@@ -96,86 +91,81 @@ export default function Chat({
         <div className="flex flex-col h-full">
           <Conversation>
             <ConversationContent>
-              {messages.map((message) => (
-                <div key={message.id}>
-                  {message.role === "assistant" &&
-                    message.parts.filter((part) => part.type === "source-url")
-                      .length > 0 && (
-                      <Sources>
-                        <SourcesTrigger
-                          count={
-                            message.parts.filter(
-                              (part) => part.type === "source-url"
-                            ).length
-                          }
-                        />
-                        {message.parts
-                          .filter((part) => part.type === "source-url")
-                          .map((part, i) => (
-                            <SourcesContent key={`${message.id}-${i}`}>
-                              <Source
-                                key={`${message.id}-${i}`}
-                                resourceId={part.sourceId}
-                                sourceType="pdf"
-                                href={part.url}
-                                title={part.title || part.url}
-                              />
-                            </SourcesContent>
-                          ))}
-                      </Sources>
+              {messages.map((message) => {
+                // Extract sources from message parts
+                const sourceParts = message.parts.filter(
+                  (part) => part.type === "source-url"
+                );
+                const sources: SourceData[] = sourceParts.map((part: any) => ({
+                  sourceId: part.sourceId || "",
+                  url: part.url || "",
+                  title: part.title || "",
+                  type: part.providerMetadata?.custom?.resourceType || "pdf",
+                  content: part.providerMetadata?.custom?.content || "",
+                  chunkIdx: part.providerMetadata?.custom?.chunkIdx,
+                  similarity: part.providerMetadata?.custom?.similarity,
+                }));
+
+                return (
+                  <div key={message.id} className="space-y-3">
+                    {message.parts.map((part, i) => {
+                      switch (part.type) {
+                        case "text":
+                          return (
+                            <Fragment key={`${message.id}-${i}`}>
+                              <Message from={message.role}>
+                                <MessageContent>
+                                  <Response>{part.text}</Response>
+                                </MessageContent>
+                              </Message>
+                              {message.role === "assistant" &&
+                                message.id === messages.at(-1)?.id && (
+                                  <Actions className="-mt-2">
+                                    <Action
+                                      onClick={() => regenerate()}
+                                      label="Retry"
+                                    >
+                                      <RefreshCcwIcon className="size-3.5" />
+                                    </Action>
+                                    <Action
+                                      onClick={() =>
+                                        navigator.clipboard.writeText(part.text)
+                                      }
+                                      label="Copy"
+                                    >
+                                      <CopyIcon className="size-3.5" />
+                                    </Action>
+                                  </Actions>
+                                )}
+                            </Fragment>
+                          );
+                        case "reasoning":
+                          return (
+                            <Reasoning
+                              key={`${message.id}-${i}`}
+                              className="w-full"
+                              isStreaming={
+                                status === "streaming" &&
+                                i === message.parts.length - 1 &&
+                                message.id === messages.at(-1)?.id
+                              }
+                            >
+                              <ReasoningTrigger />
+                              <ReasoningContent>{part.text}</ReasoningContent>
+                            </Reasoning>
+                          );
+                        default:
+                          return null;
+                      }
+                    })}
+
+                    {/* Display sources after the message response */}
+                    {message.role === "assistant" && sources.length > 0 && (
+                      <Sources sources={sources} className="mt-4" />
                     )}
-                  {message.parts.map((part, i) => {
-                    switch (part.type) {
-                      case "text":
-                        return (
-                          <Fragment key={`${message.id}-${i}`}>
-                            <Message from={message.role}>
-                              <MessageContent>
-                                <Response>{part.text}</Response>
-                              </MessageContent>
-                            </Message>
-                            {message.role === "assistant" &&
-                              i === messages.length - 1 && (
-                                <Actions className="-mt-2">
-                                  <Action
-                                    onClick={() => regenerate()}
-                                    label="Retry"
-                                  >
-                                    <RefreshCcwIcon className="size-3.5" />
-                                  </Action>
-                                  <Action
-                                    onClick={() =>
-                                      navigator.clipboard.writeText(part.text)
-                                    }
-                                    label="Copy"
-                                  >
-                                    <CopyIcon className="size-3.5" />
-                                  </Action>
-                                </Actions>
-                              )}
-                          </Fragment>
-                        );
-                      case "reasoning":
-                        return (
-                          <Reasoning
-                            key={`${message.id}-${i}`}
-                            className="w-full"
-                            isStreaming={
-                              status === "streaming" &&
-                              i === message.parts.length - 1 &&
-                              message.id === messages.at(-1)?.id
-                            }
-                          >
-                            <ReasoningTrigger />
-                            <ReasoningContent>{part.text}</ReasoningContent>
-                          </Reasoning>
-                        );
-                      default:
-                        return null;
-                    }
-                  })}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
               {status === "submitted" && <Loader />}
             </ConversationContent>
             <ConversationScrollButton />
@@ -196,7 +186,7 @@ export default function Chat({
                 value={input}
               />
             </PromptInputBody>
-            <PromptInputToolbar>
+            <PromptInputFooter>
               <PromptInputTools>
                 <PromptInputActionMenu>
                   <PromptInputActionMenuTrigger />
@@ -206,7 +196,7 @@ export default function Chat({
                 </PromptInputActionMenu>
               </PromptInputTools>
               <PromptInputSubmit disabled={!input && !status} status={status} />
-            </PromptInputToolbar>
+            </PromptInputFooter>
           </PromptInput>
         </div>
       </div>

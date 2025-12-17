@@ -4,7 +4,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function Header() {
   return (
-    <header className="w-screen flex justify-between items-center px-16 py-6">
+    <header className="w-full flex justify-between items-center px-4 sm:px-8 py-6 container mx-auto">
       <div className="w-28">
         <svg
           width="100%"

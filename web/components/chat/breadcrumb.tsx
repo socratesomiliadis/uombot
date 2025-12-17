@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, usePathname } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -13,72 +13,64 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 
+type FetchState = {
+  chatTitle: string | null;
+  loading: boolean;
+  error: boolean;
+};
+
 export function ChatBreadcrumb() {
   const params = useParams();
   const pathname = usePathname();
-  const [chatTitle, setChatTitle] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [state, setState] = useState<FetchState>({
+    chatTitle: null,
+    loading: false,
+    error: false,
+  });
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const chatId = params?.id as string | undefined;
 
+  const fetchTitle = useCallback(async (id: string, signal: AbortSignal) => {
+    try {
+      const res = await fetch(`/api/chat/${id}/title`, { signal });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch chat title: ${res.status}`);
+      }
+      const data = await res.json();
+      setState({ chatTitle: data.title, loading: false, error: false });
+    } catch (err) {
+      if (err instanceof Error && err.name !== "AbortError") {
+        console.error("Error fetching chat title:", err);
+        setState({ chatTitle: "Untitled Chat", loading: false, error: true });
+      }
+    }
+  }, []);
+
   useEffect(() => {
     // Clean up previous request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
+    abortControllerRef.current?.abort();
+
+    if (!chatId) {
+      setState({ chatTitle: null, loading: false, error: false });
+      return;
     }
 
-    if (chatId) {
-      setLoading(true);
-      setError(false);
+    // Create new abort controller for this request
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
-      // Create new abort controller for this request
-      abortControllerRef.current = new AbortController();
-
-      // Fetch chat title from API
-      fetch(`/api/chat/${chatId}/title`, {
-        signal: abortControllerRef.current.signal,
-      })
-        .then((res) => {
-          if (res.ok) {
-            return res.json();
-          }
-          throw new Error(`Failed to fetch chat title: ${res.status}`);
-        })
-        .then((data) => {
-          setChatTitle(data.title);
-          setError(false);
-        })
-        .catch((error) => {
-          if (error.name !== "AbortError") {
-            console.error("Error fetching chat title:", error);
-            setError(true);
-            setChatTitle("Untitled Chat");
-          }
-        })
-        .finally(() => {
-          if (
-            abortControllerRef.current &&
-            !abortControllerRef.current.signal.aborted
-          ) {
-            setLoading(false);
-          }
-        });
-    } else {
-      // Reset state when no chat ID
-      setChatTitle(null);
-      setLoading(false);
-      setError(false);
-    }
+    // Set loading state and fetch
+    setState((prev) => ({ ...prev, loading: true, error: false }));
+    fetchTitle(chatId, controller.signal);
 
     // Cleanup function
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      controller.abort();
     };
-  }, [chatId]);
+  }, [chatId, fetchTitle]);
+
+  const { chatTitle, loading, error } = state;
 
   const isOnChatPage = pathname === "/chat";
   const isOnSpecificChat = chatId && !isOnChatPage;

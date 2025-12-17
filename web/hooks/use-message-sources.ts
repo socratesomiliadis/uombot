@@ -14,12 +14,6 @@ export function useMessageSources(messages: UIMessage[]) {
 
     messages.forEach((message) => {
       if (message.role === "assistant") {
-        // Debug: Log the structure of assistant messages
-        console.log(
-          "Assistant message structure:",
-          JSON.stringify(message, null, 2)
-        );
-
         // Look for tool invocations in the message (AI SDK uses toolInvocations)
         const toolInvocations = (message as any).toolInvocations;
         if (toolInvocations && toolInvocations.length > 0) {
