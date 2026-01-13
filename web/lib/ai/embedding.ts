@@ -25,7 +25,7 @@ export const generateEmbeddings = async (
     providerOptions: {
       google: {
         outputDimensionality: 1536,
-        taskType: "RETRIEVAL_DOCUMENT",
+        taskType: "QUESTION_ANSWERING",
       },
     },
   });
@@ -40,7 +40,7 @@ export const generateEmbedding = async (value: string): Promise<number[]> => {
     providerOptions: {
       google: {
         outputDimensionality: 1536,
-        taskType: "RETRIEVAL_DOCUMENT",
+        taskType: "QUESTION_ANSWERING",
       },
     },
   });
