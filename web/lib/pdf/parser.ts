@@ -1,4 +1,4 @@
-import { PDFParse } from "pdf-parse";
+import pdfParse from "pdf-parse";
 
 export interface PDFMetadata {
   title?: string;
@@ -20,18 +20,14 @@ export interface PDFParseResult {
 
 export class PDFParser {
   async extractText(pdfBuffer: Buffer): Promise<PDFParseResult> {
-    const parser = new PDFParse({ data: pdfBuffer });
     try {
-      const [textResult, infoResult] = await Promise.all([
-        parser.getText(),
-        parser.getInfo(),
-      ]);
+      const data = await pdfParse(pdfBuffer);
 
       return {
-        text: textResult.text,
-        numPages: textResult.pages.length,
-        metadata: this.extractMetadata(infoResult.info),
-        info: infoResult.info,
+        text: data.text,
+        numPages: data.numpages,
+        metadata: this.extractMetadata(data.info),
+        info: data.info,
       };
     } catch (error) {
       console.error("PDF parsing error:", error);
@@ -40,8 +36,6 @@ export class PDFParser {
           error instanceof Error ? error.message : "Unknown error"
         }`
       );
-    } finally {
-      await parser.destroy();
     }
   }
 

@@ -4,14 +4,9 @@ import { chunks, embeddings } from "@/lib/db/schema/embeddings";
 import { s3Service } from "@/lib/storage/s3";
 import { pdfParser } from "@/lib/pdf/parser";
 import { textChunker } from "@/lib/ai/chunking";
-import { embedMany } from "ai";
-import { google } from "@ai-sdk/google";
 import { eq } from "drizzle-orm";
 import crypto from "crypto";
-import { nanoid } from "@/lib/utils";
-import { generateEmbedding } from "../ai/embedding";
-
-const embeddingModel = google.textEmbedding("gemini-embedding-001");
+import { generateDocumentEmbeddings } from "../ai/embedding";
 
 export interface PDFUploadResult {
   resourceId: string;
@@ -141,25 +136,14 @@ export class PDFPipeline {
         )
         .returning();
 
-      // Step 10: Generate embeddings
+      // Step 10: Generate embeddings in batches (Gemini API limit: 100 per batch)
       console.log("Generating embeddings...");
-      // chunkRecords.forEach(async (chunkRecord) => {
-      //   const embedding = await generateEmbedding(chunkRecord.text);
-      //   await db.insert(embeddings).values({
-      //     chunkId: chunkRecord.id,
-      //     embedding,
-      //   });
-      // });
-      const { embeddings: embeddingVectors } = await embedMany({
-        model: embeddingModel,
-        values: textChunks.map((chunk) => chunk.text),
-        providerOptions: {
-          google: {
-            outputDimensionality: 1536,
-            taskType: "RETRIEVAL_DOCUMENT",
-          },
-        },
-      });
+      const embeddingVectors = await generateDocumentEmbeddings(
+        textChunks.map((chunk) => chunk.text),
+        (batch, total) => {
+          console.log(`Processing embedding batch ${batch}/${total}...`);
+        }
+      );
 
       // Step 11: Store embeddings
       console.log("Storing embeddings...");

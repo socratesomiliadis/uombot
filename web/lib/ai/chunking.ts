@@ -159,14 +159,39 @@ export class TextChunker {
 
   /**
    * Split text by sentences
+   * Supports multiple languages including Greek, Latin, and other Unicode scripts
    */
   private splitBySentences(text: string): string[] {
-    // Split by sentence endings, but be careful about abbreviations
+    // Split by sentence endings, supporting multiple languages
+    // - Standard punctuation: . ! ?
+    // - Greek question mark: ; (U+037E) and regular semicolon used as question mark
+    // - Greek ano teleia: · (U+00B7 or U+0387)
+    // - Use Unicode property escapes for uppercase letters across all scripts
     const sentences = text
-      .split(/(?<=[.!?])\s+(?=[A-Z])/)
+      .split(/(?<=[.!?;·])\s+(?=\p{Lu})/u)
       .map((s) => s.trim())
       .filter((s) => s.length > 0);
 
+    // If the Unicode regex didn't split well (e.g., no uppercase after punctuation),
+    // fall back to simpler punctuation-based splitting
+    if (sentences.length <= 1 && text.length > 200) {
+      const fallbackSentences = text
+        .split(/(?<=[.!?;·])\s+/)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+
+      if (fallbackSentences.length > sentences.length) {
+        return this.groupSentences(fallbackSentences);
+      }
+    }
+
+    return this.groupSentences(sentences);
+  }
+
+  /**
+   * Group short sentences together to create reasonable chunk sizes
+   */
+  private groupSentences(sentences: string[]): string[] {
     // Group short sentences together
     const result: string[] = [];
     let currentGroup = "";
@@ -244,7 +269,8 @@ export class TextChunker {
     }
 
     // Get the last few sentences for overlap
-    const sentences = text.split(/(?<=[.!?])\s+/);
+    // Support Greek and other language punctuation marks
+    const sentences = text.split(/(?<=[.!?;·])\s+/);
     let overlap = "";
     let overlapTokens = 0;
 

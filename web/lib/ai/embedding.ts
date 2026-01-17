@@ -20,6 +20,7 @@ export const generateEmbeddings = async (
 ): Promise<Array<{ embedding: number[]; content: string }>> => {
   const chunks = generateChunks(value);
   const { embeddings } = await embedMany({
+    maxParallelCalls: 10,
     model: embeddingModel,
     values: chunks,
     providerOptions: {
@@ -45,6 +46,42 @@ export const generateEmbedding = async (value: string): Promise<number[]> => {
     },
   });
   return embedding;
+};
+
+/**
+ * Generate embeddings for document chunks with automatic batching.
+ * Uses RETRIEVAL_DOCUMENT task type for optimal document indexing.
+ * Handles Gemini's 100-item batch limit automatically.
+ */
+export const generateDocumentEmbeddings = async (
+  texts: string[],
+  onProgress?: (batch: number, total: number) => void
+): Promise<number[][]> => {
+  const BATCH_SIZE = 100;
+  const allEmbeddings: number[][] = [];
+  const totalBatches = Math.ceil(texts.length / BATCH_SIZE);
+
+  for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+    const batch = texts.slice(i, i + BATCH_SIZE);
+    const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
+
+    onProgress?.(batchNumber, totalBatches);
+
+    const { embeddings: batchEmbeddings } = await embedMany({
+      model: embeddingModel,
+      values: batch,
+      providerOptions: {
+        google: {
+          outputDimensionality: 1536,
+          taskType: "RETRIEVAL_DOCUMENT",
+        },
+      },
+    });
+
+    allEmbeddings.push(...batchEmbeddings);
+  }
+
+  return allEmbeddings;
 };
 
 // Configuration from environment variables with defaults

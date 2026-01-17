@@ -70,12 +70,17 @@ export async function GET(
     const pdfBuffer = await s3Service.getFile(key);
 
     // Return the PDF with appropriate headers
+    // Use ASCII-safe filename for Content-Disposition header
+    // Non-ASCII characters must be encoded using RFC 5987
+    const title = resourceData.title || "document";
+    const safeFilename = title.replace(/[^\x00-\x7F]/g, "_"); // Replace non-ASCII with underscore
+    const encodedFilename = encodeURIComponent(title);
+
     return new NextResponse(Buffer.from(pdfBuffer), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="${
-          resourceData.title || "document"
-        }.pdf"`,
+        // Use both filename (ASCII fallback) and filename* (UTF-8 encoded) for compatibility
+        "Content-Disposition": `inline; filename="${safeFilename}.pdf"; filename*=UTF-8''${encodedFilename}.pdf`,
         "Cache-Control": "private, max-age=3600", // Cache for 1 hour
       },
     });

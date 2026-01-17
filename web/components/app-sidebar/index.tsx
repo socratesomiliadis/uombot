@@ -7,6 +7,7 @@ import {
   ChevronsUpDown,
   ShieldUser,
   BadgePlus,
+  SquarePen,
 } from "lucide-react";
 
 import {
@@ -192,6 +193,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </span>
           <SimpleThemeToggle />
         </div>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild className="mt-2">
+              <Link href="/chat">
+                <SquarePen className="h-4 w-4" />
+                <span>New Chat</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <SidebarHistory user={session?.user} />
