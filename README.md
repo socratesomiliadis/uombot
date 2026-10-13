@@ -1,6 +1,6 @@
 # UoMBot
 
-**A university assistant that answers questions using institutional PDFs and source citations.**
+**Decision support for university administrative staff, grounded in laws and university guidelines.**
 
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
@@ -10,15 +10,16 @@
 
 Built by [Socrates Omiliadis](https://github.com/socratesomiliadis) for a bachelor's thesis in Applied Informatics at the **University of Macedonia**, Thessaloniki, Greece.
 
-UoMBot brings university documents into a searchable knowledge base. Students can ask questions in Greek or English, receive streamed answers, and inspect the documents retrieved to support them. The system uses retrieval-augmented generation (RAG): it searches the uploaded corpus before generating an answer.
+UoMBot helps university administrative staff find and reason over the laws, regulations, and institutional guidelines relevant to their work. Staff can ask questions in Greek or English, examine the cited provisions and documents, and use that evidence to support administrative decisions. The system uses retrieval-augmented generation (RAG): it searches the uploaded corpus before generating an answer.
 
 ## What it does
 
+- **Administrative decision support:** surface relevant legal and institutional provisions so staff can review requirements and procedures with supporting sources.
 - **Document ingestion:** upload text-based PDFs, extract and clean their text, split it into overlapping chunks, and store embeddings.
 - **Broader retrieval:** a query-understanding tool can generate up to two alternative phrasings; retrieval combines and deduplicates results from the original and additional questions.
 - **Source visibility:** streamed responses include retrieved-document citations and metadata.
 - **Persistent conversations:** signed-in users can return to their saved chats.
-- **Resource management:** admin pages list uploaded resources, processing status, and document statistics.
+- **Resource management:** application administrators can list uploaded resources, processing status, and document statistics.
 - **Request limits:** chat and PDF uploads use an in-memory rate limiter.
 
 The knowledge base starts empty. Answers depend on the documents you upload; a citation makes an answer inspectable but does not guarantee its correctness.
@@ -121,9 +122,9 @@ Create an account at `/sign-up`. New accounts have the `user` role. To use the a
 docker compose exec db psql -U postgres -d uombot -c "UPDATE users SET role = 'admin' WHERE email = 'you@example.com';"
 ```
 
-Sign out and back in, then visit `/admin/upload`. Upload a text-based university PDF, supply its title/language, and check its status under `/admin/resources`. The upload limit is 10 MiB and processing runs within the upload request.
+Sign out and back in, then visit `/admin/upload`. Upload a text-based PDF of relevant legislation, a university regulation, or an administrative guideline, supply its title/language, and check its status under `/admin/resources`. The upload limit is 10 MiB and processing runs within the upload request.
 
-Open `/chat` and ask a question covered by that document. For example, if you uploaded a study guide, try “What are the graduation requirements?” or “Ποιες είναι οι προϋποθέσεις αποφοίτησης;”. These are example prompts, not evaluated test cases. Inspect the cited sources alongside the answer.
+Open `/chat` and ask a question covered by that document. For example, after uploading an applicable regulation, try “Which provisions govern this administrative request, and what supporting documents are required?” or “Ποιες διατάξεις διέπουν αυτό το διοικητικό αίτημα και ποια δικαιολογητικά απαιτούνται;”. These are illustrative administrative scenarios, not evaluated test cases. Review the cited provisions and documents when assessing the answer.
 
 ## Configuration reference
 
@@ -167,7 +168,7 @@ From the repository root, `docker compose logs db minio` shows infrastructure lo
 
 The public repository does not include a labeled evaluation dataset, a retrieval benchmark runner, or an automated test suite. This README consequently makes no numerical claims about retrieval quality or response latency.
 
-A reproducible evaluation should publish its corpus snapshot, labeled questions and relevant document/chunk IDs, a single-query baseline, fixed model/settings, and a report covering Recall@k, citation quality, and latency. Greek and English cases should be reported separately.
+A reproducible evaluation should publish its corpus snapshot, labeled questions and relevant document/chunk IDs, a single-query baseline, fixed model/settings, and a report covering Recall@k, citation quality, and latency. Cases should reflect administrative decisions involving legislation and university guidelines, with Greek and English results reported separately.
 
 Current implementation limits:
 
